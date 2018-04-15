@@ -9,14 +9,16 @@ import android.widget.Button;
 import android.widget.EditText;
 
 import io.reactivex.functions.Consumer;
-import io.reactivex.functions.Predicate;
 import io.reactivex.schedulers.Schedulers;
 
 public class MainActivity extends AppCompatActivity {
     private RxSocket rxSocket;
     Button mBtnSend;
     Button mBtnConnect;
+    Button mBtnHeartConnect;
     EditText mEtSendText;
+    private String HOST ="192.168.1.223";
+    private int PORT=8080;
 
 
     @Override
@@ -27,22 +29,32 @@ public class MainActivity extends AppCompatActivity {
 
         mBtnSend = findViewById(R.id.btn_send);
         mBtnConnect = findViewById(R.id.btn_connect);
+        mBtnHeartConnect = findViewById(R.id.btn_heart_connect);
         mEtSendText = findViewById(R.id.et_send_text);
 
-        mBtnConnect.setOnClickListener(view -> connectSocket());
-        mBtnSend.setOnClickListener(view -> rxSocket.send(mEtSendText.getText().toString()).subscribeOn(Schedulers.io()).subscribe());
-    }
 
-    private void connectSocket() {
-        //初始化socket
-        rxSocket = RxSocket.getInstance();
-        //socket连接
-        rxSocket.connect("192.168.137.1", 8080)
-                .filter(aBoolean -> aBoolean)
-                .compose(rxSocket.heartBeat(5, "keep heart"))
-                .compose(rxSocket.read())
-                .filter(s -> !TextUtils.isEmpty(s))
-                .compose(RxSchedulers.io_main())
-                .subscribe(s -> Log.d("server response data", s));
+
+         //初始化
+        RxSocket rxSocket = RxSocket.getInstance();
+
+        mBtnConnect.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                //重连机制的订阅
+                rxSocket.reconnection(HOST, PORT)
+                        .subscribe(s -> Log.d("server response data", s));
+            }
+        });
+
+        mBtnHeartConnect.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                //心跳、重连机制的订阅
+                rxSocket.reconnectionAndHeartBeat(HOST, PORT, 5, "---Hello---")
+                        .subscribe(s -> Log.d("server response data", s));
+            }
+        });
+
+        mBtnSend.setOnClickListener(view -> rxSocket.send(mEtSendText.getText().toString()).subscribeOn(Schedulers.io()).subscribe());
     }
 }

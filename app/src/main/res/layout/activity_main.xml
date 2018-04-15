@@ -18,7 +18,13 @@
         android:id="@+id/btn_connect"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="连接" />
+        android:text="重连机制连接" />
+
+    <Button
+        android:id="@+id/btn_heart_connect"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="重连机制连接（心跳）" />
 
     <Button
         android:id="@+id/btn_send"
