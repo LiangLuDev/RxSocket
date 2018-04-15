@@ -5,13 +5,11 @@
 > - 心跳反馈，设置一个时间，每隔一个时间向服务器发送数据，保持在线。
 
 ### 使用方式（Android端）
-> Android端下载体验 [RxSocket.apk]()
+> Android端扫码下载体验
+
+![RxSocket.png](https://upload-images.jianshu.io/upload_images/2635045-a02398bfe2bf384d.png?imageMogr2/auto-orient/strip%7CimageView2/2/w/200)
 #### 1.初始化RxSocket
 ```java
-//服务器地址
-private String HOST ="192.168.1.223";
-//服务器端口号
-private int PORT=8080;
 //初始化
 RxSocket rxSocket = RxSocket.getInstance();
 ```
@@ -33,7 +31,7 @@ rxSocket.send("hello").subscribeOn(Schedulers.io()).subscribe()
 ```
 ### 使用方式（服务端）
 > 使用此软件就不用自己写服务器，先模拟自己测试完毕再跟服务器联调。
-> [服务端模拟软件下载]()
+> [服务端模拟软件下载]()(仅支持Windows系统)
 > 按照图片标注设置就行了。测试是否接收到数据能否发送数据就行了。
 ![Alt text](./网络调试助手.png)
 
