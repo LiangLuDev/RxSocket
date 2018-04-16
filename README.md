@@ -1,5 +1,4 @@
-# RxSocket
-### Rx封装Socket连接
+# Socket连接-RxSocket
 #### 功能简介
 > - 服务器断开、网络错误等各种方式导致连接失败都会自动一直重连上服务器。
 > - 心跳反馈，设置一个时间，每隔一个时间向服务器发送数据，保持在线。
@@ -15,19 +14,34 @@ RxSocket rxSocket = RxSocket.getInstance();
 ```
 #### 2.重连机制连接
 ```java
-//重连机制的订阅
+/**
+* 重连机制的订阅
+* 参数1：服务器地址
+* 参数2：端口号
+*/
 rxSocket.reconnection(HOST, PORT)
         .subscribe(s -> Log.d("server response data", s));
 ```
 #### 3.心跳重连机制连接
 ```java
-//心跳、重连机制的订阅
+/**
+* 心跳、重连机制的订阅
+* 参数1：服务器地址
+* 参数2：端口号
+* 参数3：心跳发送时间
+* 参数4：心跳发送信息
+*/
 rxSocket.reconnectionAndHeartBeat(HOST, PORT, 5, "---Hello---")
         .subscribe(s -> Log.d("server response data", s));
 ```
 #### 4.发送数据
 ``` java
-rxSocket.send("hello").subscribeOn(Schedulers.io()).subscribe()
+mSubscribe = rxSocket.send("hello").subscribe()
+```
+#### 5.应用退出或者不需要socket取消订阅
+``` java
+//取消订阅
+mSubscribe.dispose();
 ```
 ### 使用方式（服务端）
 > 使用此软件就不用自己写服务器，先模拟自己测试完毕再跟服务器联调。

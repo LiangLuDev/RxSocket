@@ -1,18 +1,16 @@
 package com.luliang.rxsocket;
 
 import android.annotation.SuppressLint;
-import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
+import android.support.v7.app.AppCompatActivity;
 import android.text.TextUtils;
-import android.util.Log;
 import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import io.reactivex.functions.Consumer;
-import io.reactivex.schedulers.Schedulers;
+import io.reactivex.disposables.Disposable;
 
 public class MainActivity extends AppCompatActivity {
     Button mBtnSend;
@@ -22,6 +20,7 @@ public class MainActivity extends AppCompatActivity {
     EditText mEtHost;
     EditText mEtPort;
     TextView mTvResponse;
+    private Disposable mSubscribe;
 
 
     @SuppressLint("SetTextI18n")
@@ -41,36 +40,61 @@ public class MainActivity extends AppCompatActivity {
 
 
         //初始化
-        RxSocket rxSocket = RxSocket.getInstance();
+        RxSocket mRxSocket = RxSocket.getInstance();
 
         mBtnConnect.setOnClickListener(view -> {
             if (TextUtils.isEmpty(mEtHost.getText())) {
-                Toast.makeText(MainActivity.this,"请输入服务器地址",Toast.LENGTH_SHORT).show();
+                Toast.makeText(MainActivity.this, "请输入服务器地址", Toast.LENGTH_SHORT).show();
                 return;
             }
             if (TextUtils.isEmpty(mEtPort.getText())) {
-                Toast.makeText(MainActivity.this,"请输入端口号",Toast.LENGTH_SHORT).show();
+                Toast.makeText(MainActivity.this, "请输入端口号", Toast.LENGTH_SHORT).show();
                 return;
             }
-            //重连机制的订阅
-            rxSocket.reconnection(mEtHost.getText().toString(), Integer.parseInt(mEtPort.getText().toString()))
-                    .subscribe(s -> mTvResponse.setText("接收数据："+s));
+            /**
+             * 重连机制的订阅
+             * 参数1：服务器地址
+             * 参数2：端口号
+             */
+            mRxSocket.reconnection(mEtHost.getText().toString(), Integer.parseInt(mEtPort.getText().toString()))
+                    .subscribe(s -> mTvResponse.setText("接收数据：" + s));
         });
 
         mBtnHeartConnect.setOnClickListener(view -> {
             if (TextUtils.isEmpty(mEtHost.getText())) {
-                Toast.makeText(MainActivity.this,"请输入服务器地址",Toast.LENGTH_SHORT).show();
+                Toast.makeText(MainActivity.this, "请输入服务器地址", Toast.LENGTH_SHORT).show();
                 return;
             }
             if (TextUtils.isEmpty(mEtPort.getText())) {
-                Toast.makeText(MainActivity.this,"请输入端口号",Toast.LENGTH_SHORT).show();
+                Toast.makeText(MainActivity.this, "请输入端口号", Toast.LENGTH_SHORT).show();
                 return;
             }
-            //心跳、重连机制的订阅
-            rxSocket.reconnectionAndHeartBeat(mEtHost.getText().toString(), Integer.parseInt(mEtPort.getText().toString()), 5, "---Hello---")
-                    .subscribe(s -> mTvResponse.setText("接收数据："+s));
+            /**
+             * 心跳、重连机制的订阅
+             * 参数1：服务器地址
+             * 参数2：端口号
+             * 参数3：心跳发送时间
+             * 参数4：心跳发送信息
+             */
+            mRxSocket.reconnectionAndHeartBeat(mEtHost.getText().toString(), Integer.parseInt(mEtPort.getText().toString()), 5, "---Hello---")
+                    .subscribe(s -> mTvResponse.setText("接收数据：" + s));
         });
 
-        mBtnSend.setOnClickListener(view -> rxSocket.send(mEtSendText.getText().toString()).subscribeOn(Schedulers.io()).subscribe());
+        mBtnSend.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                mSubscribe = mRxSocket.send(mEtSendText.getText().toString()).subscribe();
+            }
+        });
+    }
+
+
+    @Override
+    protected void onDestroy() {
+        if (mSubscribe != null) {
+            mSubscribe.dispose();
+        }
+        super.onDestroy();
+
     }
 }

@@ -84,9 +84,8 @@ public class RxSocket {
                 .observeOn(AndroidSchedulers.mainThread());
     }
 
-
     /**
-     * 开始连接，这一步如果失败会一直重连，周期为30秒
+     * 开始连接，这一步如果失败会一直重连，周期为30秒(30秒的意思不是说30秒重连一次，而是30秒内都在重连，30秒内没连接上会重新订阅重新连接，等于一直在重连)
      *
      * @param host
      * @param port
@@ -96,7 +95,7 @@ public class RxSocket {
         return Observable.create(new ObservableOnSubscribe<Boolean>() {
             @Override
             public void subscribe(final ObservableEmitter<Boolean> emitter) throws Exception {
-                //TODO 加上是否有可用网络做判断
+                //TODO 根据项目需求加上是否有可用网络做判断
 
                 close();
 
@@ -114,17 +113,17 @@ public class RxSocket {
      *
      * @param period 心跳频率
      * @param data   心跳数据
-     * @param <T>
      * @return
      */
-    public <T> ObservableTransformer<T, Boolean> heartBeat(final int period, final String data) {
-        return new ObservableTransformer<T, Boolean>() {
+    private ObservableTransformer<Boolean, Boolean> heartBeat(final int period, final String data) {
+        return new ObservableTransformer<Boolean, Boolean>() {
             @Override
-            public ObservableSource<Boolean> apply(Observable<T> upstream) {
-                return upstream.flatMap(new Function<T, ObservableSource<? extends Boolean>>() {
+            public ObservableSource<Boolean> apply(Observable<Boolean> upstream) {
+                return upstream.flatMap(new Function<Boolean, ObservableSource<? extends Boolean>>() {
                     @Override
-                    public ObservableSource<? extends Boolean> apply(T t) throws Exception {
-                        return Observable.interval(period, TimeUnit.SECONDS)
+                    public ObservableSource<? extends Boolean> apply(Boolean aBoolean) throws Exception {
+                        //从0开始是因为这个心跳服务可以立刻开始传递下去，那么socket基本可以实现2秒内重新连接上（不加心跳的话，基本实现秒连）
+                        return Observable.interval(0, period, TimeUnit.SECONDS)
                                 .flatMap(new Function<Long, ObservableSource<? extends Boolean>>() {
                                     @Override
                                     public ObservableSource<? extends Boolean> apply(Long aLong) throws Exception {
@@ -138,7 +137,7 @@ public class RxSocket {
     }
 
     /**
-     * 发送数据，超过五秒发送失败（服务端发送数据必须以\r\n结尾才算发送成功）
+     * 发送数据，超过五秒发送失败(指定在io线程发送数据)
      *
      * @param data
      * @return
@@ -147,21 +146,18 @@ public class RxSocket {
         return Observable.just(data)
                 .flatMap(new Function<String, ObservableSource<? extends Boolean>>() {
                     @Override
-                    public ObservableSource<? extends Boolean> apply(String s) {
-                        try {
-                            if (connect && null != bufferedWriter) {
-                                bufferedWriter.write(s);
-                                bufferedWriter.write("\r\n");
-                                bufferedWriter.flush();
+                    public ObservableSource<? extends Boolean> apply(String s) throws Exception {
+                        if (connect && null != bufferedWriter) {
+                            bufferedWriter.write(s);
+                            bufferedWriter.write("\r\n");
+                            bufferedWriter.flush();
 
-                                return Observable.just(true);
-                            }
-                        } catch (Exception e) {
-                            e.printStackTrace();
+                            return Observable.just(true);
                         }
                         return Observable.just(false);
                     }
                 })
+                .subscribeOn(Schedulers.io())
                 .timeout(5, TimeUnit.SECONDS, Observable.just(false));
     }
 
@@ -183,7 +179,7 @@ public class RxSocket {
                             public void subscribe(final ObservableEmitter<String> emitter) throws Exception {
                                 if (!connect || threadStart) return;
 
-                                Log.d("socket","读取线程开启");
+                                Log.d("socket", "读取线程开启");
                                 new ReadThread(new SocketCallBack() {
                                     @Override
                                     public void onReceive(String result) {
@@ -249,11 +245,10 @@ public class RxSocket {
                     callBack.onReceive(bufferedReader.readLine());
                 }
             } catch (Exception e) {
-                e.printStackTrace();
+//                e.printStackTrace();
             }
         }
     }
-
 
     private interface SocketCallBack {
 
