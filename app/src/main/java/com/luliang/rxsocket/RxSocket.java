@@ -25,10 +25,12 @@ import io.reactivex.schedulers.Schedulers;
 /**
  * @author LuLiang
  * @github https://github.com/LiangLuDev
+ * RxSocket 连接处理
  */
 
 
 public class RxSocket {
+
 
     private static final AtomicReference<RxSocket> INSTANCE = new AtomicReference<>();
 
@@ -64,15 +66,16 @@ public class RxSocket {
         return connect(host, port)
                 .compose(this.<Boolean>read())
                 .retry()
-                .subscribeOn(Schedulers.io())
-                .observeOn(AndroidSchedulers.mainThread());
+                .compose(io_main());
     }
 
     /**
-     * 心跳、重连机制的订阅
+     * 心跳、重连机制的订阅(心跳数据初始化后不再变化，适用于心跳包数据不改变的情况)
      *
      * @param host
      * @param port
+     * @param period 心跳频率
+     * @param data   心跳数据
      * @return
      */
     public Observable<String> reconnectionAndHeartBeat(String host, int port, int period, String data) {
@@ -80,8 +83,52 @@ public class RxSocket {
                 .compose(this.<Boolean>heartBeat(period, data))
                 .compose(this.<Boolean>read())
                 .retry()
-                .subscribeOn(Schedulers.io())
-                .observeOn(AndroidSchedulers.mainThread());
+                .compose(io_main());
+    }
+
+    /**
+     * 心跳、重连机制的订阅(心跳数据可以动态改变，适用于心跳包数据动态变化的情况)
+     *
+     * @param host
+     * @param port
+     * @param period 心跳频率
+     * @return
+     */
+    public Observable<Long> reconnectionAndHeartBeat(String host, int port, final int period) {
+        return connect(host, port)
+                .flatMap(new Function<Boolean, ObservableSource<? extends Long>>() {
+                    @Override
+                    public ObservableSource<? extends Long> apply(Boolean aBoolean) throws Exception {
+                        return interval(period);
+                    }
+                });
+    }
+
+    /**
+     * 心跳包数据动态改变后记得调用该变换方式
+     *
+     * @return
+     */
+    public ObservableTransformer<Boolean, String> heartBeatChange() {
+        return new ObservableTransformer<Boolean, String>() {
+            @Override
+            public ObservableSource<String> apply(Observable<Boolean> upstream) {
+                return upstream.flatMap(new Function<Boolean, ObservableSource<? extends String>>() {
+                    @Override
+                    public ObservableSource<? extends String> apply(Boolean aBoolean) throws Exception {
+                        return Observable.create(new ObservableOnSubscribe<String>() {
+                            @Override
+                            public void subscribe(ObservableEmitter<String> emitter) throws Exception {
+                                startThread(emitter);
+                            }
+                        });
+                    }
+                })
+                        .retry()
+                        .subscribeOn(Schedulers.io())
+                        .observeOn(AndroidSchedulers.mainThread());
+            }
+        };
     }
 
     /**
@@ -122,8 +169,7 @@ public class RxSocket {
                 return upstream.flatMap(new Function<Boolean, ObservableSource<? extends Boolean>>() {
                     @Override
                     public ObservableSource<? extends Boolean> apply(Boolean aBoolean) throws Exception {
-                        //从0开始是因为这个心跳服务可以立刻开始传递下去，那么socket基本可以实现2秒内重新连接上（不加心跳的话，基本实现秒连）
-                        return Observable.interval(0, period, TimeUnit.SECONDS)
+                        return interval(period)
                                 .flatMap(new Function<Long, ObservableSource<? extends Boolean>>() {
                                     @Override
                                     public ObservableSource<? extends Boolean> apply(Long aLong) throws Exception {
@@ -134,6 +180,35 @@ public class RxSocket {
                 });
             }
         };
+    }
+
+    /**
+     * 心跳频率
+     *
+     * @param period
+     * @return
+     */
+    private Observable<Long> interval(int period) {
+        //从0开始是因为这个心跳服务可以立刻开始传递下去，那么socket基本可以实现2秒内重新连接上（不加心跳的话，基本实现秒连）
+        return Observable.interval(0, period, TimeUnit.SECONDS);
+    }
+
+    /**
+     * 读取线程开启
+     *
+     * @param emitter
+     */
+    private void startThread(final ObservableEmitter<String> emitter) {
+        if (!connect || threadStart) return;
+
+        Log.d("socket", "读取线程开启");
+        new ReadThread(new SocketCallBack() {
+            @Override
+            public void onReceive(String result) {
+                //如果服务器断开，这里会返回null,而rxjava2不允许发射一个null值，固会抛出空指针，利用其重新订阅服务
+                emitter.onNext(result);
+            }
+        }).start();
     }
 
     /**
@@ -175,17 +250,8 @@ public class RxSocket {
                     public ObservableSource<? extends String> apply(T t) throws Exception {
                         return Observable.create(new ObservableOnSubscribe<String>() {
                             @Override
-                            public void subscribe(final ObservableEmitter<String> emitter) throws Exception {
-                                if (!connect || threadStart) return;
-
-                                Log.d("socket", "读取线程开启");
-                                new ReadThread(new SocketCallBack() {
-                                    @Override
-                                    public void onReceive(String result) {
-                                        //如果服务器断开，这里会返回null,而rxjava2不允许发射一个null值，固会抛出空指针，利用其重新订阅服务
-                                        emitter.onNext(result);
-                                    }
-                                }).start();
+                            public void subscribe(ObservableEmitter<String> emitter) throws Exception {
+                                startThread(emitter);
                             }
                         });
                     }
@@ -247,6 +313,16 @@ public class RxSocket {
 //                e.printStackTrace();
             }
         }
+    }
+
+    /**
+     * 线程切换
+     *
+     * @param <T>
+     * @return
+     */
+    public static <T> ObservableTransformer<T, T> io_main() {
+        return upstream -> upstream.compose(io_main());
     }
 
     private interface SocketCallBack {

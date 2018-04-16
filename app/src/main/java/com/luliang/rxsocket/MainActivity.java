@@ -10,13 +10,17 @@ import android.widget.EditText;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import io.reactivex.ObservableSource;
 import io.reactivex.disposables.Disposable;
+import io.reactivex.functions.Function;
 
 public class MainActivity extends AppCompatActivity {
     Button mBtnSend;
     Button mBtnConnect;
     Button mBtnHeartConnect;
+    Button mBtnHeartDataConnect;
     EditText mEtSendText;
+    EditText mEtHeartText;
     EditText mEtHost;
     EditText mEtPort;
     TextView mTvResponse;
@@ -33,9 +37,11 @@ public class MainActivity extends AppCompatActivity {
         mBtnSend = findViewById(R.id.btn_send);
         mBtnConnect = findViewById(R.id.btn_connect);
         mBtnHeartConnect = findViewById(R.id.btn_heart_connect);
+        mBtnHeartDataConnect = findViewById(R.id.btn_heart_data_connect);
         mEtSendText = findViewById(R.id.et_send_text);
         mEtHost = findViewById(R.id.et_host);
         mEtPort = findViewById(R.id.et_port);
+        mEtHeartText = findViewById(R.id.et_heart_text);
         mTvResponse = findViewById(R.id.tv_response);
 
 
@@ -70,7 +76,7 @@ public class MainActivity extends AppCompatActivity {
                 return;
             }
             /**
-             * 心跳、重连机制的订阅
+             * 心跳、重连机制的订阅(心跳数据不可改变)
              * 参数1：服务器地址
              * 参数2：端口号
              * 参数3：心跳发送时间
@@ -79,6 +85,32 @@ public class MainActivity extends AppCompatActivity {
             mRxSocket.reconnectionAndHeartBeat(mEtHost.getText().toString(), Integer.parseInt(mEtPort.getText().toString()), 5, "---Hello---")
                     .subscribe(s -> mTvResponse.setText("接收数据：" + s));
         });
+
+        mBtnHeartDataConnect.setOnClickListener(view -> {
+            if (TextUtils.isEmpty(mEtHost.getText())) {
+                Toast.makeText(MainActivity.this, "请输入服务器地址", Toast.LENGTH_SHORT).show();
+                return;
+            }
+            if (TextUtils.isEmpty(mEtPort.getText())) {
+                Toast.makeText(MainActivity.this, "请输入端口号", Toast.LENGTH_SHORT).show();
+                return;
+            }
+            if (TextUtils.isEmpty(mEtHeartText.getText())) {
+                Toast.makeText(MainActivity.this, "请输入心跳传输数据", Toast.LENGTH_SHORT).show();
+                return;
+            }
+            /**
+             * 心跳、重连机制的订阅(心跳数据动态改变)
+             * 参数1：服务器地址
+             * 参数2：端口号
+             * 参数3：心跳发送时间
+             */
+            mRxSocket.reconnectionAndHeartBeat(mEtHost.getText().toString(), Integer.parseInt(mEtPort.getText().toString()), 5)
+                    .flatMap(aLong -> mRxSocket.send(mEtHeartText.getText().toString()))
+                    .compose(mRxSocket.<String>heartBeatChange())
+                    .subscribe(s -> mTvResponse.setText("接收数据：" + s));
+        });
+
 
         mBtnSend.setOnClickListener(new View.OnClickListener() {
             @Override

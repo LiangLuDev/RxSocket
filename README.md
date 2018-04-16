@@ -23,7 +23,7 @@ RxSocket rxSocket = RxSocket.getInstance();
 rxSocket.reconnection(HOST, PORT)
         .subscribe(s -> Log.d("server response data", s));
 ```
-#### 3.心跳重连机制连接
+#### 3.心跳重连机制连接（不可动态改变心跳数据）
 ```java
 /**
 * 心跳、重连机制的订阅
@@ -35,6 +35,22 @@ rxSocket.reconnection(HOST, PORT)
 rxSocket.reconnectionAndHeartBeat(HOST, PORT, 5, "---Hello---")
         .subscribe(s -> Log.d("server response data", s));
 ```
+
+#### 4.心跳重连机制连接（可动态改变心跳数据）
+> 动态改变心跳数据主要针对于，比如电量cpu内存温度等情况需要动态设置心跳数据。
+```java
+/**
+* 心跳、重连机制的订阅(心跳数据动态改变)
+* 参数1：服务器地址
+* 参数2：端口号
+* 参数3：心跳发送时间
+*/
+rxSocket.reconnectionAndHeartBeat(HOST, PORT, 5)
+		.flatMap(aLong -> mRxSocket.send(mEtHeartText.getText().toString()))
+        .compose(mRxSocket.<String>heartBeatChange())
+        .subscribe(s -> Log.d("server response data", s));
+```
+
 #### 4.发送数据
 ``` java
 mSubscribe = rxSocket.send("hello").subscribe()

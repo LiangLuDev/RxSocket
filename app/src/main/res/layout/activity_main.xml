@@ -7,100 +7,143 @@
     android:orientation="vertical"
     tools:context="com.luliang.rxsocket.MainActivity">
 
-    <LinearLayout
+
+    <ScrollView
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="10dp"
-        android:orientation="horizontal">
+        android:layout_height="wrap_content">
 
-        <TextView
-            android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:layout_weight="1"
-            android:text="服务器地址:"
-            android:textColor="#000000" />
+        <LinearLayout
+            android:orientation="vertical"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content">
 
-        <EditText
-            android:id="@+id/et_host"
-            android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:layout_weight="3"
-            android:text="192.168.1.223" />
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="10dp"
+                android:orientation="horizontal">
 
+                <TextView
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:text="服务器地址:"
+                    android:textColor="#000000" />
 
-    </LinearLayout>
-
-    <LinearLayout
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="10dp"
-        android:orientation="horizontal">
-
-        <TextView
-            android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:layout_weight="1"
-            android:text="端口号:"
-            android:textColor="#000000" />
-
-        <EditText
-            android:id="@+id/et_port"
-            android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:layout_weight="3"
-            android:text="8080" />
+                <EditText
+                    android:id="@+id/et_host"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="3"
+                    android:text="192.168.1.223" />
 
 
-    </LinearLayout>
+            </LinearLayout>
 
-    <LinearLayout
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="10dp"
-        android:orientation="horizontal">
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="10dp"
+                android:orientation="horizontal">
 
-        <TextView
-            android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:layout_weight="1"
-            android:text="发送数据:"
-            android:textColor="#000000" />
+                <TextView
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:text="端口号:"
+                    android:textColor="#000000" />
 
-        <EditText
-            android:id="@+id/et_send_text"
-            android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:layout_weight="3"
-            android:text="hello" />
-
-
-    </LinearLayout>
+                <EditText
+                    android:id="@+id/et_port"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="3"
+                    android:text="8080" />
 
 
-    <Button
-        android:id="@+id/btn_connect"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:text="重连机制连接" />
+            </LinearLayout>
 
-    <Button
-        android:id="@+id/btn_heart_connect"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:text="重连机制连接（心跳）" />
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="10dp"
+                android:orientation="horizontal">
 
-    <Button
-        android:id="@+id/btn_send"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:text="发送" />
+                <TextView
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:text="发送数据:"
+                    android:textColor="#000000" />
 
-    <TextView
-        android:id="@+id/tv_response"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="10dp"
-        android:text="接收数据:"
-        android:textColor="#000000" />
+                <EditText
+                    android:id="@+id/et_send_text"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="3"
+                    android:text="hello" />
+
+
+            </LinearLayout>
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="10dp"
+                android:orientation="horizontal">
+
+                <TextView
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:text="心跳数据:"
+                    android:textColor="#000000" />
+
+                <EditText
+                    android:id="@+id/et_heart_text"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="3"
+                    android:text="heart" />
+
+
+            </LinearLayout>
+
+
+            <Button
+                android:id="@+id/btn_connect"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="重连机制连接" />
+
+            <Button
+                android:id="@+id/btn_heart_connect"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="重连机制连接（心跳）" />
+
+            <Button
+                android:id="@+id/btn_heart_data_connect"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="重连机制连接（心跳传输数据可变）" />
+
+            <Button
+                android:id="@+id/btn_send"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="发送" />
+
+            <TextView
+                android:id="@+id/tv_response"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="10dp"
+                android:text="接收数据:"
+                android:textColor="#000000" />
+        </LinearLayout>
+    </ScrollView>
+
+
 
 </LinearLayout>
