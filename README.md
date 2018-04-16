@@ -51,11 +51,11 @@ rxSocket.reconnectionAndHeartBeat(HOST, PORT, 5)
         .subscribe(s -> Log.d("server response data", s));
 ```
 
-#### 4.发送数据
+#### 5.发送数据
 ``` java
 mSubscribe = rxSocket.send("hello").subscribe()
 ```
-#### 5.应用退出或者不需要socket取消订阅
+#### 6.应用退出或者不需要socket取消订阅
 ``` java
 //取消订阅
 mSubscribe.dispose();
