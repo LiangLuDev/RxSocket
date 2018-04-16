@@ -46,7 +46,7 @@ rxSocket.reconnectionAndHeartBeat(HOST, PORT, 5, "---Hello---")
 * 参数3：心跳发送时间
 */
 rxSocket.reconnectionAndHeartBeat(HOST, PORT, 5)
-	.flatMap(aLong -> mRxSocket.send(mEtHeartText.getText().toString()))
+		.flatMap(aLong -> mRxSocket.send(mEtHeartText.getText().toString()))
         .compose(mRxSocket.<String>heartBeatChange())
         .subscribe(s -> Log.d("server response data", s));
 ```
@@ -62,7 +62,7 @@ mSubscribe.dispose();
 ```
 ### 使用方式（服务端）
 > 使用此软件就不用自己写服务器，先模拟自己测试完毕再跟服务器联调。
-> [服务端模拟软件下载]()(仅支持Windows系统)
+> [服务端模拟软件下载](https://github.com/LiangLuDev/RxSocket/blob/167699bdca5a44308affb8d97036e309500adcff/NetAssist.exe)(仅支持Windows系统)
 > 按照图片标注设置就行了。测试是否接收到数据能否发送数据就行了。
 ![网络调试助手.png](https://upload-images.jianshu.io/upload_images/2635045-f1f82da32fc39bed.png?imageMogr2/auto-orient/strip%7CimageView2/2/w/800)
 ### 意见反馈
