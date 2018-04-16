@@ -322,7 +322,8 @@ public class RxSocket {
      * @return
      */
     public static <T> ObservableTransformer<T, T> io_main() {
-        return upstream -> upstream.compose(io_main());
+        return upstream -> upstream.subscribeOn(Schedulers.io())
+                .observeOn(AndroidSchedulers.mainThread());
     }
 
     private interface SocketCallBack {
