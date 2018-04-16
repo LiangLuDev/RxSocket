@@ -8,6 +8,7 @@
 
 ![RxSocket.png](https://upload-images.jianshu.io/upload_images/2635045-a02398bfe2bf384d.png?imageMogr2/auto-orient/strip%7CimageView2/2/w/200)
 #### 1.初始化RxSocket
+> PS.此项目使用Rx2
 ```java
 //初始化
 RxSocket rxSocket = RxSocket.getInstance();
