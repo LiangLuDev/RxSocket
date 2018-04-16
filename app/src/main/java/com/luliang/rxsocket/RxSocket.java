@@ -148,8 +148,7 @@ public class RxSocket {
                     @Override
                     public ObservableSource<? extends Boolean> apply(String s) throws Exception {
                         if (connect && null != bufferedWriter) {
-                            bufferedWriter.write(s);
-                            bufferedWriter.write("\r\n");
+                            bufferedWriter.write(s.concat("\r\n"));
                             bufferedWriter.flush();
 
                             return Observable.just(true);
