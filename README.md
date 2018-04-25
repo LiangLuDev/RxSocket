@@ -46,7 +46,7 @@ rxSocket.reconnectionAndHeartBeat(HOST, PORT, 5, "---Hello---")
 * 参数3：心跳发送时间
 */
 rxSocket.reconnectionAndHeartBeat(HOST, PORT, 5)
-		.flatMap(aLong -> mRxSocket.send(mEtHeartText.getText().toString()))
+	.flatMap(aLong -> mRxSocket.send(mEtHeartText.getText().toString()))
         .compose(mRxSocket.<String>heartBeatChange())
         .subscribe(s -> Log.d("server response data", s));
 ```
